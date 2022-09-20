@@ -1,0 +1,532 @@
+openapi: 3.0.0
+info:
+  title: Авторизация
+  description: "Получение и обновление авторизационных токенов для персональной ав\
+    торизации и авторизации приложений\n**Авито API для бизнеса предоставляется со\
+    гласно [Условиям использования](https://api.avito.ru/docs/public/APITermsOfServiceV1.pdf).**\
+    \    \n"
+  contact:
+    email: supportautoload@avito.ru
+  version: "1"
+servers:
+- url: https://api.avito.ru/
+tags:
+- name: Access
+  description: |
+    Для работы с API от своего лица необходимо получить токен авторизации — отдельный для каждой учетной записи на Авито.
+
+    **Внимание! Использование метода GET для получения токена является deprecated и перестанет работать 28.02.2022. Для запроса токенов используйте метод POST.**
+
+
+      1. Получаем **client_id** и **client_secret** в [личном кабинете](https://www.avito.ru/professionals/api)
+      2. Выписываем себе токен:
+         ```
+         curl -L -X POST 'https://api.avito.ru/token/' \
+             -H 'Content-Type: application/x-www-form-urlencoded' \
+             --data-urlencode 'grant_type=client_credentials' \
+             --data-urlencode 'client_id=<CLIENT_ID>' \
+             --data-urlencode 'client_secret=<CLIENT_SECRET>'
+         ```
+      3. Далее выполняем запросы к API с заголовком `Authorization: Bearer <ACCESS_TOKEN>`
+
+      Время действия токена ограничено - 24 часа с момента его получения.
+      После этого вам необходимо получить новый токен.
+  x-displayName: Персональная авторизация
+- name: ApplicationAccess
+  description: |
+    Для работы с API приложений от лица пользователя есть возможность получить токен через Authorization Code механизм протокола OAuth2. Для этого в первую очередь нужно зарегистрировать приложение на https://developers.avito.ru/applications. После успешной регистрации ваше приложение получит возможность работать с API Авито от лица пользователя (если последний выдаст на это разрешение).
+
+    Подробнее об Authorization Code флоу протокола OAuth2 можно почитать [в статье](https://www.digitalocean.com/community/tutorials/oauth-2-ru). Процесс работы с этим флоу в API Авито отличается только незначительными деталями – ниже по шагам описан процесс интеграции.
+
+    **Внимание! Использование метода GET для получения токена является deprecated и перестанет работать 28.02.2022. Для запроса токенов используйте метод POST.**
+
+    ### Шаг 1: Регистрация приложения
+
+    Регистрируем приложение через https://developers.avito.ru/application. Для регистрации нужно указать:
+
+    * Имя приложения, которое будет выводиться пользователям в форме подтверждения прав
+    * Redirect URI - адрес, на который сайт Авито средиректит пользователя после подтверждения прав
+    * Скоупы, которые необходимы вашему приложению (подробнее о доступных скоупах ниже)
+    * Описание приложения - для каких целей вы планируете использовать доступ к данным
+
+    В данный момент мы регистрируем только доверенные приложения от наших партнеров.
+
+    Скоупы определяют права, на которые ваше приложение сможет рассчитывать после подверждения авторизации пользователем. Доступные скоупы:
+    * messenger:read: Чтение сообщений в мессенджере Авито
+    * messenger:write: Модифицирование сообщений в мессенджере Авито
+    * user_balance:read: Получение баланса пользователя
+    * job:write: Изменение объявлений вертикали Работа
+    * job:cv: Получение информации резюме
+    * job:vacancy: Работа с вакансиями
+    * job:negotiations: Получение информации об откликах на вакансии
+    * user_operations:read: Получение истории операций пользователя
+    * user:read: Получение информации о пользователе
+    * autoload:reports: Получение отчетов Автозагрузки
+    * items:info: Получение информации об объявлениях
+    * items:apply_vas: Применение дополнительных услуг
+    * short_term_rent:read: Получение информации об объявлениях краткосрочной аренды
+    * short_term_rent:write: Изменение объявлений краткосрочной аренды
+    * stats:read: Получение статистики объявлений
+    ### Шаг 2: Ссылка с кодом авторизации
+
+    Сначала пользователю предоставляется ссылка следующего вида:
+
+    ```
+    https://avito.ru/oauth?response_type=code&client_id=<CLIENT_ID>&scope=messenger:read,messenger:write
+    ```
+
+    ### Шаг 3: Пользователь авторизует приложение
+
+    Пользователь переходит по ссылке на Авито, аутентифицируется при необходимости, затем подтверждает выдачу необходимых прав вашему приложению.
+
+    ### Шаг 4: Приложение получает код авторизации
+
+    Если пользователь выбирает "Авторизовать приложение", Авито перенаправляет пользовательский агент (браузер) по URI перенаправления (Redirect URI), который был задан на этапе регистрации приложения и добавляет в него параметр `code`. Например, если при регистрации в качестве Redirect URI был указан адрес `https://example.com/callback/avito`, то мы перенаправим пользователя на:
+
+    ```
+    https://example.com/callback/avito?code=<AUTHORIZATION_CODE>
+    ```
+
+    ### Шаг 5: Приложение запрашивает токен доступа
+
+    Приложение запрашивает токен доступа у API Авито путём отправки авторизационного кода и аутентификационной информации (включая секрет приложения). Ниже представлен пример POST-запроса для получения access token:
+
+    ```
+         curl -L -X POST 'https://api.avito.ru/token/' \
+             -H 'Content-Type: application/x-www-form-urlencoded' \
+             --data-urlencode 'grant_type=authorization_code' \
+             --data-urlencode 'client_id=<CLIENT_ID>' \
+             --data-urlencode 'client_secret=<CLIENT_SECRET>' \
+             --data-urlencode 'code=<AUTHORIZATION_CODE>'
+    ```
+
+    ### Шаг 6: Приложение получает токен доступа
+
+    Если авторизация прошла успешно, API возвращает токен доступа (а также токен для обновления токена доступа - refresh token). Весь ответ сервера может выглядеть следующим образом:
+
+    ```
+    {
+        "access_token": "<ACCESS_TOKEN>",
+        "expires_in": 3600,
+        "refresh_token": "<REFRESH_TOKEN>",
+        "scope": "messenger:read,messenger:write",
+        "token_type": "Bearer"
+    }
+    ```
+
+    Приложение сохраняет access_token и refresh_token.
+
+    ### Шаг 7: Приложение делает запросы к API c токеном доступа
+
+    Далее приложение может выполнять запросы к API с заголовком `Authorization: Bearer <ACCESS_TOKEN>`
+
+    ### Шаг 8: Приложение обновляет access_token
+
+    Время действия access token ограничено - 24 часа с момента его получения. После этого вам необходимо получить новый токен.
+
+    После истечения срока действия токена доступа все запросы к API с его использованием будут возвращать код ошибки 403. Сохраненный refresh token может быть использован для получения нового токена доступа от авторизационного сервера.
+
+    Ниже представлен пример POST-запроса, использующего refresh token для обновления токена доступа:
+
+    ``` curl -L -X POST 'https://api.avito.ru/token/' \
+        -H 'Content-Type: application/x-www-form-urlencoded' \
+        --data-urlencode 'grant_type=refresh_token' \
+        --data-urlencode 'client_id=<CLIENT_ID>' \
+        --data-urlencode 'client_secret=<CLIENT_SECRET>' \
+        --data-urlencode 'refresh_token=<REFRESH_TOKEN>'
+    ```
+
+    В ответ приложение получит точно такой же JSON, как и при обмене code на access token. При этом будет получен не только новый access_token, но и новый refresh_token. Обновите оба значения в своей базе данных.
+
+    ### Дополнительный параметр state
+
+    Для того чтобы защитить данные пользователей мы крайне рекомендуем использовать параметр state. Этот параметр позволяет защититься от CSRF-атак и восстановить состояние вашего приложения на момент начала авторизации. Подробнее, зачем нужен параметр state, можно прочитать [тут](https://auth0.com/docs/protocols/oauth2/oauth-state).
+
+    Для того, чтобы использовать state – просто включите его в начальный URL:
+
+    ```
+    https://avito.ru/oauth?response_type=code&client_id=<CLIENT_ID>&scope=messenger:read,messenger:write&state=<STATE>
+    ```
+
+    В итоге state будет содержаться в финальном Redirect URI, на который Авито перенаправляет пользователя после подтверждения прав доступа. Например, если при регистрации в качестве Redirect URI был указан адрес `https://example.com/callback/avito`, то мы перенаправим пользователя на:
+
+    ```
+    https://example.com/callback/avito?code=<AUTHORIZATION_CODE>&state=<STATE>
+    ```
+
+    Не передавайте чувствительные данные в открытом виде в этом параметре. Генерируйте уникальное временное значение state в вашем приложении.
+  x-displayName: Авторизация для приложений
+paths:
+  /token:
+    post:
+      tags:
+      - Access
+      summary: Получение access token
+      description: Получения временного ключа для авторизации
+      operationId: getAccessToken
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GetTokenRequest'
+      responses:
+        "200":
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+              example:
+                access_token: kChqt9ewQNAcwgbHp4yFd5
+                expires_in: 3600
+                token_type: Bearer
+  /token‎:
+    post:
+      tags:
+      - ApplicationAccess
+      summary: Получение access token
+      description: Получения временного ключа для авторизации запроса от лица пользователя
+      operationId: getAccessTokenAuthorizationCode
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/GetTokenOAuthRequest'
+      responses:
+        "200":
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_1'
+              example:
+                access_token: kChqt9ewQNAcwgbHp4yFd5
+                expires_in: 3600
+                refresh_token: QNAcwgbHQNAcwgbHkChqt9ewQNAcwgbHp4yFd5
+                scope: "messenger:read,messenger:write"
+                token_type: Bearer
+  /token‎‎:
+    post:
+      tags:
+      - ApplicationAccess
+      summary: Обновление access token
+      description: Обновление временного ключа для авторизации запроса от лица пользователя
+      operationId: refreshAccessTokenAuthorizationCode
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        "200":
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_2'
+              example:
+                access_token: 5dFy4pHbgwcANQwe9tqhCk
+                expires_in: 3600
+                refresh_token: 5dFy4pHbgwcANQwe9tqhCkHbgwcANQHbgwcANQ
+                scope: "messenger:read,messenger:write"
+                token_type: Bearer
+components:
+  schemas:
+    GetTokenOAuthRequest:
+      required:
+      - client_id
+      - client_secret
+      - code
+      - grant_type
+      type: object
+      properties:
+        client_id:
+          type: string
+        client_secret:
+          type: string
+        code:
+          type: string
+        grant_type:
+          type: string
+          default: authorization_code
+    GetTokenRequest:
+      required:
+      - client_id
+      - client_secret
+      - grant_type
+      type: object
+      properties:
+        client_id:
+          type: string
+        client_secret:
+          type: string
+        grant_type:
+          type: string
+          default: client_credentials
+    RefreshRequest:
+      required:
+      - client_id
+      - client_secret
+      - grant_type
+      - refresh_token
+      type: object
+      properties:
+        client_id:
+          type: string
+        client_secret:
+          type: string
+        grant_type:
+          type: string
+          description: Тип OAuth flow. Строка refresh_token
+          default: refresh_token
+        refresh_token:
+          type: string
+    inline_response_200:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: Ключ для временной авторизации в системе
+        expires_in:
+          type: number
+          description: Время жизни ключа в секундах
+          format: int32
+        token_type:
+          type: string
+          description: Тип ключа авторизации
+      example:
+        access_token: access_token
+        token_type: token_type
+        expires_in: 0.80082819046101150206595775671303272247314453125
+    inline_response_200_1:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: Ключ для временной авторизации в системе
+        expires_in:
+          type: number
+          description: Время жизни ключа в секундах
+          format: int32
+        refresh_token:
+          type: string
+          description: Ключ для обновления токена доступа
+        scope:
+          type: string
+          description: Полученный скоуп
+        token_type:
+          type: string
+          description: Тип ключа авторизации
+      example:
+        access_token: access_token
+        refresh_token: refresh_token
+        scope: scope
+        token_type: token_type
+        expires_in: 0.80082819046101150206595775671303272247314453125
+    inline_response_200_2:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: Новый ключ для временной авторизации в системе
+        expires_in:
+          type: number
+          description: Время жизни ключа в секундах
+          format: int32
+        refresh_token:
+          type: string
+          description: Новый ключ для обновления токена доступа
+        scope:
+          type: string
+          description: Полученный скоуп
+        token_type:
+          type: string
+          description: Тип ключа авторизации
+      example:
+        access_token: access_token
+        refresh_token: refresh_token
+        scope: scope
+        token_type: token_type
+        expires_in: 0.80082819046101150206595775671303272247314453125
+  parameters:
+    authHeader:
+      name: Authorization
+      in: header
+      description: Токен для авторизации
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+        example: Bearer ACCESS_TOKEN
+    chatId:
+      name: chat_id
+      in: path
+      description: Идентификатор чата (клиента)
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+    itemIds:
+      name: item_ids
+      in: query
+      required: false
+      style: form
+      explode: true
+      schema:
+        type: string
+        example: "12345,6789"
+    limit:
+      name: limit
+      in: query
+      description: Количество сообщений на странице (положительное число больше 0
+        и меньше 100)
+      required: false
+      style: form
+      explode: true
+      schema:
+        type: integer
+        format: int32
+        example: 50
+        default: 100
+    messageId:
+      name: message_id
+      in: path
+      description: Идентификатор сообщения
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+    offset:
+      name: offset
+      in: query
+      required: false
+      style: form
+      explode: true
+      schema:
+        type: integer
+        format: int32
+        example: 50
+        default: 0
+    page:
+      name: page
+      in: query
+      description: Номер страницы
+      required: false
+      style: form
+      explode: true
+      schema:
+        type: integer
+        format: int32
+    pathItemId:
+      name: item_id
+      in: path
+      description: Идентификатор объявления на сайте
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: integer
+        format: int64
+    pathUserId:
+      name: user_id
+      in: path
+      description: Номер пользователя в Личном кабинете Авито
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: integer
+        format: int64
+    pathVacancyId:
+      name: vacancy_id
+      in: path
+      description: Идентификатор вакансии на сайте
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: integer
+        format: int64
+    perPage:
+      name: per_page
+      in: query
+      description: Количество ресурсов на страницу
+      required: false
+      style: form
+      explode: true
+      schema:
+        type: integer
+        format: int32
+    unreadOnly:
+      name: unread_only
+      in: query
+      required: false
+      style: form
+      explode: true
+      schema:
+        type: boolean
+        example: true
+    userId:
+      name: user_id
+      in: path
+      description: Идентификатор пользователя (клиента)
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: integer
+        format: int64
+  headers:
+    X-RateLimit-Limit:
+      description: Количество запросов в минуту
+      style: simple
+      explode: false
+      schema:
+        type: integer
+        format: int32
+    X-RateLimit-Remaining:
+      description: Доступное количество запросов в текущем временном окне
+      style: simple
+      explode: false
+      schema:
+        type: integer
+        format: int32
+  securitySchemes:
+    AuthorizationCode:
+      type: oauth2
+      description: "Это API использует OAuth 2 с механизмом authorization_code. Ис\
+        пользуйте его для доступа к данным других пользователей при разработке сто\
+        роннего приложения. [Подробнее](#tag/ApplicationAccess)"
+      flows:
+        authorizationCode:
+          authorizationUrl: https://avito.ru/oauth
+          tokenUrl: https://api.avito.ru/token
+          scopes:
+            autoload:reports: Получение отчетов Автозагрузки
+            items:apply_vas: Применение дополнительных услуг
+            items:info: Получение информации об объявлениях
+            job:cv: Получение информации резюме
+            job:negotiations: Получение информации об откликах на вакансии
+            job:vacancy: Работа с вакансиями
+            job:write: Изменение объявлений вертикали Работа
+            messenger:read: Чтение сообщений в мессенджере Авито
+            messenger:write: Модифицирование сообщений в мессенджере Авито
+            short_term_rent:read: Получение информации об объявлениях краткосрочной
+              аренды
+            short_term_rent:write: Изменение объявлений краткосрочной аренды
+            stats:read: Получение статистики объявлений
+            user:read: Получение информации о пользователе
+            user_balance:read: Получение баланса пользователя
+            user_operations:read: Получение истории операций пользователя
+    ClientCredentials:
+      type: oauth2
+      description: "Это API использует OAuth 2 с механизмом client_credentials. Ис\
+        пользуйте его для доступа к возможностям своей личной учетной записи. [Под\
+        робнее](#tag/Access)"
+      flows:
+        clientCredentials:
+          tokenUrl: https://api.avito.ru/token
+          scopes: {}

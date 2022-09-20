@@ -1,0 +1,1810 @@
+openapi: 3.0.0
+info:
+  title: Мессенджер
+  description: |
+    API Мессенджера - набор методов для получения списка чатов пользователя на Авито, получения сообщений в чате, отправки сообщения в чат и другие Через API Мессенджера можно организовать интеграцию между мессенджером Авито и сторонней системой в обе стороны
+
+    **Авито API для бизнеса предоставляется согласно [Условиям использования](https://api.avito.ru/docs/public/APITermsOfServiceV1.pdf).**
+  contact:
+    email: supportautoload@avito.ru
+  version: "1"
+servers:
+- url: https://api.avito.ru/
+tags:
+- name: Messenger
+  description: |
+    # API Мессенджера - набор методов для получения списка чатов пользователя на Авито, получения сообщений в чате, отправки сообщения в чат и другие Через API Мессенджера можно организовать интеграцию между мессенджером Авито и сторонней системой в обе стороны
+    Описание API произведено в формате [**Swagger 3.0**](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md).
+    Вы можете использовать данный файл для ознакомления с методами API, а также для генерации базового кода для работы с API на удобном для вас языке программирования с помощью утилиты
+    [**Swagger Codegen**](https://swagger.io/swagger-codegen/) или online сервиса [**Swagger Editor**](https://editor.swagger.io/).
+
+    **Авито API для бизнеса предоставляется согласно [Условиям использования](https://api.avito.ru/docs/public/APITermsOfServiceV1.pdf).**
+    По всем вопросам работы с API необходимо обращаться в Службу Поддержки профессиональных инструментов:
+
+    <li>телефон: <b>+7 495 777-10-66</b></li>
+    <li>email: <a href="mailto:supportautoload@avito.ru">supportautoload@avito.ru</a></li>
+
+    # Типы авторизации
+    Для использования данного API запрос должен быть авторизован. В данный момент API Авито использует следующие механизмы авторизации. <!-- ReDoc-Inject: <security-definitions> -->
+  x-displayName: Мессенджер
+paths:
+  /messenger/v1/accounts/{user_id}/blacklist:
+    post:
+      tags:
+      - Messenger
+      summary: Добавление пользователя в blacklist
+      description: |
+        Добавление пользователя в blacklist
+      operationId: postBlacklist
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен для авторизации
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: Bearer ACCESS_TOKEN
+      - name: user_id
+        in: path
+        description: Идентификатор пользователя (клиента)
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      requestBody:
+        description: Добавление пользователя в blacklist
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/addBlacklistRequestBody'
+      responses:
+        "200":
+          description: Успешный ответ
+      security:
+      - AuthorizationCode:
+        - messenger:write
+      - ClientCredentials: []
+  /messenger/v1/accounts/{user_id}/chats:
+    get:
+      tags:
+      - Messenger
+      summary: Получение информации по чатам
+      description: |
+        Возвращает список чатов
+      operationId: getChats
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен для авторизации
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: Bearer ACCESS_TOKEN
+      - name: user_id
+        in: path
+        description: Идентификатор пользователя (клиента)
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      - name: item_ids
+        in: query
+        description: Получение чатов только по объявлениям с указанными item_id
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          example: "12345,6789"
+          items:
+            type: integer
+            format: int64
+      - name: unread_only
+        in: query
+        description: При значении true метод возвращает только непрочитанные чаты
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: boolean
+          example: true
+          default: false
+      - name: chat_types
+        in: query
+        description: "Фильтрация возвращаемых чатов. \n* u2i — чаты по объявлениям\
+          ;\n* u2u — чаты между пользователями;\n"
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: array
+          example: "u2i,u2u"
+          items:
+            type: string
+            enum:
+            - u2i
+            - u2u
+      - name: limit
+        in: query
+        description: Количество сообщений / чатов для запроса
+        required: false
+        style: form
+        explode: true
+        schema:
+          maximum: 100
+          minimum: 1
+          type: integer
+          format: int32
+          example: 50
+          default: 100
+      - name: offset
+        in: query
+        description: Сдвиг сообщений / чатов для запроса
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+          example: 50
+          default: 0
+      responses:
+        "200":
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Chats'
+      security:
+      - AuthorizationCode:
+        - messenger:read
+      - ClientCredentials: []
+  /messenger/v1/accounts/{user_id}/chats/{chat_id}:
+    get:
+      tags:
+      - Messenger
+      summary: Получение информации по чату
+      description: |
+        Возвращает данные чата и последнее сообщение в нем
+      operationId: getChatById
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен для авторизации
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: Bearer ACCESS_TOKEN
+      - name: user_id
+        in: path
+        description: Идентификатор пользователя (клиента)
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      - name: chat_id
+        in: path
+        description: Идентификатор чата (клиента)
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Chat'
+      security:
+      - AuthorizationCode:
+        - messenger:read
+      - ClientCredentials: []
+  /messenger/v1/accounts/{user_id}/chats/{chat_id}/messages:
+    post:
+      tags:
+      - Messenger
+      summary: Отправление сообщения
+      description: |
+        На данный момент можно отправить только текстовое сообщение
+      operationId: postSendMessage
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен для авторизации
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: Bearer ACCESS_TOKEN
+      - name: user_id
+        in: path
+        description: Идентификатор пользователя (клиента)
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      - name: chat_id
+        in: path
+        description: Идентификатор чата (клиента)
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      requestBody:
+        description: Отправление сообщения
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/sendMessageRequestBody'
+      responses:
+        "200":
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200'
+          x-examples:
+            application/json:
+              content:
+                text: привет!
+              created: 1563202313
+              direction: in
+              id: bdcc5bac2d00345f1cc66fa657813958
+              type: text
+      security:
+      - AuthorizationCode:
+        - messenger:write
+      - ClientCredentials: []
+  /messenger/v1/accounts/{user_id}/chats/{chat_id}/messages/:
+    get:
+      tags:
+      - Messenger
+      summary: Получение списка сообщений
+      description: |
+        Получение списка сообщений, используйте только для изначальной загрузки сообщений на экране, для получения новых сообщений в реальном времени используйте webhooks
+      operationId: getMessages
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен для авторизации
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: Bearer ACCESS_TOKEN
+      - name: user_id
+        in: path
+        description: Идентификатор пользователя (клиента)
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      - name: chat_id
+        in: path
+        description: Идентификатор чата (клиента)
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: Количество сообщений / чатов для запроса
+        required: false
+        style: form
+        explode: true
+        schema:
+          maximum: 100
+          minimum: 1
+          type: integer
+          format: int32
+          example: 50
+          default: 100
+      - name: offset
+        in: query
+        description: Сдвиг сообщений / чатов для запроса
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+          example: 50
+          default: 0
+      responses:
+        "200":
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Messages'
+      security:
+      - AuthorizationCode:
+        - messenger:read
+      - ClientCredentials: []
+  /messenger/v1/accounts/{user_id}/chats/{chat_id}/messages/{message_id}:
+    post:
+      tags:
+      - Messenger
+      summary: Удаление сообщения
+      description: |
+        Сообщение не пропадает из истории, а меняет свой тип на deleted.
+        Удалять можно только те сообщения которые не старше часа с момента их создания.
+      operationId: deleteMessage
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен для авторизации
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: Bearer ACCESS_TOKEN
+      - name: user_id
+        in: path
+        description: Идентификатор пользователя (клиента)
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      - name: chat_id
+        in: path
+        description: Идентификатор чата (клиента)
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: message_id
+        in: path
+        description: Идентификатор сообщения
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: object
+                x-content-type: application/json
+      security:
+      - AuthorizationCode:
+        - messenger:write
+      - ClientCredentials: []
+  /messenger/v1/accounts/{user_id}/chats/{chat_id}/read:
+    post:
+      tags:
+      - Messenger
+      summary: Прочитать чат
+      description: |
+        После успешного получения списка сообщений необходимо вызвать этот метод для того, чтобы чат стал прочитанным.
+      operationId: chatRead
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен для авторизации
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: Bearer ACCESS_TOKEN
+      - name: user_id
+        in: path
+        description: Идентификатор пользователя (клиента)
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      - name: chat_id
+        in: path
+        description: Идентификатор чата (клиента)
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      responses:
+        "200":
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_1'
+      security:
+      - AuthorizationCode:
+        - messenger:read
+      - ClientCredentials: []
+  /messenger/v1/webhook:
+    post:
+      tags:
+      - Messenger
+      summary: Включение уведомлений (webhooks)
+      description: |
+        Включение уведомлений
+      operationId: postWebhook
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен для авторизации
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: Bearer ACCESS_TOKEN
+      requestBody:
+        description: Url на который будут отправляться уведомления
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/webhookSubscribeRequestBody'
+      responses:
+        "200":
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_1'
+          x-examples:
+            application/json:
+              ok: true
+      security:
+      - AuthorizationCode:
+        - messenger:read
+      - ClientCredentials: []
+      x-code-samples:
+      - lang: PHP
+        source: "$ch = curl_init(\"https://api.avito.ru/messenger/v1/webhook\");\n\
+          curl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t\"Content-Type: application/json\"\
+          ,\n\t\"Authorization: Bearer <TOKEN>\",\n]);\ncurl_setopt($ch, CURLOPT_POST,\
+          \ true);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([\n\t\"url\"\
+          \ => \"https://test.test\",\n], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));\n\
+          \ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, true);\n$result = curl_exec($ch);\n\
+          curl_close($ch);"
+  /messenger/v1/webhook/unsubscribe:
+    post:
+      tags:
+      - Messenger
+      summary: Отключение уведомлений (webhooks)
+      description: |
+        Отключение уведомлений
+      operationId: postWebhookUnsubscribe
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен для авторизации
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: Bearer ACCESS_TOKEN
+      requestBody:
+        description: "Url, на который необходимо перестать слать уведомления"
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/webhookSubscribeRequestBody'
+      responses:
+        "200":
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_1'
+          x-examples:
+            application/json:
+              ok: true
+      security:
+      - AuthorizationCode:
+        - messenger:read
+      - ClientCredentials: []
+      x-code-samples:
+      - lang: PHP
+        source: "$ch = curl_init(\"https://api.avito.ru/messenger/v1/webhook/unsubscribe\"\
+          );\ncurl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t\"Content-Type: application/json\"\
+          ,\n\t\"Authorization: Bearer <TOKEN>\",\n]);\ncurl_setopt($ch, CURLOPT_POST,\
+          \ true);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([\n\t\"url\"\
+          \ => \"https://test.test\",\n], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));\n\
+          \ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, true);\n$result = curl_exec($ch);\n\
+          curl_close($ch);"
+  /messenger/v2/accounts/{user_id}/chats/{chat_id}/messages/:
+    get:
+      tags:
+      - Messenger
+      summary: Получение списка сообщений V2
+      description: |
+        Получение списка сообщений.  **Не помечает чат прочитанным**
+        После успешного списка сообщений необходимо вызвать [метод](https://api.avito.ru/docs/api.html#operation/chatRead), который сделат чат прочитанным.
+      operationId: getMessagesV2
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен для авторизации
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: Bearer ACCESS_TOKEN
+      - name: user_id
+        in: path
+        description: Идентификатор пользователя (клиента)
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      - name: chat_id
+        in: path
+        description: Идентификатор чата (клиента)
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+      - name: limit
+        in: query
+        description: Количество сообщений / чатов для запроса
+        required: false
+        style: form
+        explode: true
+        schema:
+          maximum: 100
+          minimum: 1
+          type: integer
+          format: int32
+          example: 50
+          default: 100
+      - name: offset
+        in: query
+        description: Сдвиг сообщений / чатов для запроса
+        required: false
+        style: form
+        explode: true
+        schema:
+          type: integer
+          format: int32
+          example: 50
+          default: 0
+      responses:
+        "200":
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Messages'
+      security:
+      - AuthorizationCode:
+        - messenger:read
+      - ClientCredentials: []
+  /messenger/v2/webhook:
+    post:
+      tags:
+      - Messenger
+      summary: Включение уведомлений V2 (webhooks)
+      description: |
+        Включение **V2** уведомлений. <LINK_TO_V2_WEBHOOKS>
+      operationId: postWebhookV2
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен для авторизации
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: Bearer ACCESS_TOKEN
+      requestBody:
+        description: Url на который будут отправляться уведомления
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/webhookSubscribeRequestBody'
+      responses:
+        "200":
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/inline_response_200_1'
+          x-examples:
+            application/json:
+              ok: true
+      security:
+      - AuthorizationCode:
+        - messenger:read
+      - ClientCredentials: []
+      x-code-samples:
+      - lang: PHP
+        source: "$ch = curl_init(\"https://api.avito.ru/messenger/v2/webhook\");\n\
+          curl_setopt($ch, CURLOPT_HTTPHEADER, [\n\t\"Content-Type: application/json\"\
+          ,\n\t\"Authorization: Bearer <TOKEN>\",\n]);\ncurl_setopt($ch, CURLOPT_POST,\
+          \ true);\n\ncurl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([\n\t\"url\"\
+          \ => \"https://test.test\",\n], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));\n\
+          \ncurl_setopt($ch, CURLOPT_RETURNTRANSFER, true);\n$result = curl_exec($ch);\n\
+          curl_close($ch);"
+components:
+  schemas:
+    Chat:
+      type: object
+      properties:
+        context:
+          $ref: '#/components/schemas/Chat_context'
+        created:
+          type: integer
+          format: int32
+          example: 1571412836
+        id:
+          type: string
+        last_message:
+          $ref: '#/components/schemas/Chat_last_message'
+        updated:
+          type: integer
+          format: int32
+          example: 1571654040
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/Chat_users'
+      example:
+        created: 1571412836
+        context:
+          type: item
+          value:
+            images:
+              count: 4
+              main:
+                "140x105": https://01-img-staging-proxy.k.avito.ru/140x105/5815183159.jpg
+            status_id: 10
+            price_string: 300 000 ₽
+            user_id: 141906442
+            id: 1768287444
+            title: Mazda 3 2008
+            url: https://avito.ru/moskva/avtomobili/mazda_3_2008_1768287444
+        last_message:
+          created: 1571654040
+          id: id
+          author_id: 94235311
+          type: link
+          content:
+            link:
+              text: habr.com
+              url: habr.com
+          direction: out
+        id: id
+        updated: 1571654040
+        users:
+        - public_user_profile:
+            item_id: 1768287444
+            user_id: 94235311
+            avatar:
+              default: https://www.avito.st/stub_avatars/_/14_256x256.png
+              images:
+                "48x48": https://www.avito.st/stub_avatars/_/14_48x48.png
+                "192x192": https://www.avito.st/stub_avatars/_/14_192x192.png
+                "36x36": https://www.avito.st/stub_avatars/_/14_36x36.png
+                "24x24": https://www.avito.st/stub_avatars/_/14_24x24.png
+                "96x96": https://www.avito.st/stub_avatars/_/14_96x96.png
+                "128x128": https://www.avito.st/stub_avatars/_/14_128x128.png
+                "256x256": https://www.avito.st/stub_avatars/_/14_256x256.png
+                "72x72": https://www.avito.st/stub_avatars/_/14_72x72.png
+                "64x64": https://www.avito.st/stub_avatars/_/14_64x64.png
+            url: https://avito.ru/user/db65c00c946dc404e11f14755465453b/profile?id=1768287444&src=messenger
+          name: Guldan
+          id: 94235311
+        - public_user_profile:
+            item_id: 1768287444
+            user_id: 94235311
+            avatar:
+              default: https://www.avito.st/stub_avatars/_/14_256x256.png
+              images:
+                "48x48": https://www.avito.st/stub_avatars/_/14_48x48.png
+                "192x192": https://www.avito.st/stub_avatars/_/14_192x192.png
+                "36x36": https://www.avito.st/stub_avatars/_/14_36x36.png
+                "24x24": https://www.avito.st/stub_avatars/_/14_24x24.png
+                "96x96": https://www.avito.st/stub_avatars/_/14_96x96.png
+                "128x128": https://www.avito.st/stub_avatars/_/14_128x128.png
+                "256x256": https://www.avito.st/stub_avatars/_/14_256x256.png
+                "72x72": https://www.avito.st/stub_avatars/_/14_72x72.png
+                "64x64": https://www.avito.st/stub_avatars/_/14_64x64.png
+            url: https://avito.ru/user/db65c00c946dc404e11f14755465453b/profile?id=1768287444&src=messenger
+          name: Guldan
+          id: 94235311
+    Chats:
+      type: object
+      properties:
+        chats:
+          type: array
+          items:
+            $ref: '#/components/schemas/Chat'
+      example:
+        chats:
+        - created: 1571412836
+          context:
+            type: item
+            value:
+              images:
+                count: 4
+                main:
+                  "140x105": https://01-img-staging-proxy.k.avito.ru/140x105/5815183159.jpg
+              status_id: 10
+              price_string: 300 000 ₽
+              user_id: 141906442
+              id: 1768287444
+              title: Mazda 3 2008
+              url: https://avito.ru/moskva/avtomobili/mazda_3_2008_1768287444
+          last_message:
+            created: 1571654040
+            id: id
+            author_id: 94235311
+            type: link
+            content:
+              link:
+                text: habr.com
+                url: habr.com
+            direction: out
+          id: id
+          updated: 1571654040
+          users:
+          - public_user_profile:
+              item_id: 1768287444
+              user_id: 94235311
+              avatar:
+                default: https://www.avito.st/stub_avatars/_/14_256x256.png
+                images:
+                  "48x48": https://www.avito.st/stub_avatars/_/14_48x48.png
+                  "192x192": https://www.avito.st/stub_avatars/_/14_192x192.png
+                  "36x36": https://www.avito.st/stub_avatars/_/14_36x36.png
+                  "24x24": https://www.avito.st/stub_avatars/_/14_24x24.png
+                  "96x96": https://www.avito.st/stub_avatars/_/14_96x96.png
+                  "128x128": https://www.avito.st/stub_avatars/_/14_128x128.png
+                  "256x256": https://www.avito.st/stub_avatars/_/14_256x256.png
+                  "72x72": https://www.avito.st/stub_avatars/_/14_72x72.png
+                  "64x64": https://www.avito.st/stub_avatars/_/14_64x64.png
+              url: https://avito.ru/user/db65c00c946dc404e11f14755465453b/profile?id=1768287444&src=messenger
+            name: Guldan
+            id: 94235311
+          - public_user_profile:
+              item_id: 1768287444
+              user_id: 94235311
+              avatar:
+                default: https://www.avito.st/stub_avatars/_/14_256x256.png
+                images:
+                  "48x48": https://www.avito.st/stub_avatars/_/14_48x48.png
+                  "192x192": https://www.avito.st/stub_avatars/_/14_192x192.png
+                  "36x36": https://www.avito.st/stub_avatars/_/14_36x36.png
+                  "24x24": https://www.avito.st/stub_avatars/_/14_24x24.png
+                  "96x96": https://www.avito.st/stub_avatars/_/14_96x96.png
+                  "128x128": https://www.avito.st/stub_avatars/_/14_128x128.png
+                  "256x256": https://www.avito.st/stub_avatars/_/14_256x256.png
+                  "72x72": https://www.avito.st/stub_avatars/_/14_72x72.png
+                  "64x64": https://www.avito.st/stub_avatars/_/14_64x64.png
+              url: https://avito.ru/user/db65c00c946dc404e11f14755465453b/profile?id=1768287444&src=messenger
+            name: Guldan
+            id: 94235311
+        - created: 1571412836
+          context:
+            type: item
+            value:
+              images:
+                count: 4
+                main:
+                  "140x105": https://01-img-staging-proxy.k.avito.ru/140x105/5815183159.jpg
+              status_id: 10
+              price_string: 300 000 ₽
+              user_id: 141906442
+              id: 1768287444
+              title: Mazda 3 2008
+              url: https://avito.ru/moskva/avtomobili/mazda_3_2008_1768287444
+          last_message:
+            created: 1571654040
+            id: id
+            author_id: 94235311
+            type: link
+            content:
+              link:
+                text: habr.com
+                url: habr.com
+            direction: out
+          id: id
+          updated: 1571654040
+          users:
+          - public_user_profile:
+              item_id: 1768287444
+              user_id: 94235311
+              avatar:
+                default: https://www.avito.st/stub_avatars/_/14_256x256.png
+                images:
+                  "48x48": https://www.avito.st/stub_avatars/_/14_48x48.png
+                  "192x192": https://www.avito.st/stub_avatars/_/14_192x192.png
+                  "36x36": https://www.avito.st/stub_avatars/_/14_36x36.png
+                  "24x24": https://www.avito.st/stub_avatars/_/14_24x24.png
+                  "96x96": https://www.avito.st/stub_avatars/_/14_96x96.png
+                  "128x128": https://www.avito.st/stub_avatars/_/14_128x128.png
+                  "256x256": https://www.avito.st/stub_avatars/_/14_256x256.png
+                  "72x72": https://www.avito.st/stub_avatars/_/14_72x72.png
+                  "64x64": https://www.avito.st/stub_avatars/_/14_64x64.png
+              url: https://avito.ru/user/db65c00c946dc404e11f14755465453b/profile?id=1768287444&src=messenger
+            name: Guldan
+            id: 94235311
+          - public_user_profile:
+              item_id: 1768287444
+              user_id: 94235311
+              avatar:
+                default: https://www.avito.st/stub_avatars/_/14_256x256.png
+                images:
+                  "48x48": https://www.avito.st/stub_avatars/_/14_48x48.png
+                  "192x192": https://www.avito.st/stub_avatars/_/14_192x192.png
+                  "36x36": https://www.avito.st/stub_avatars/_/14_36x36.png
+                  "24x24": https://www.avito.st/stub_avatars/_/14_24x24.png
+                  "96x96": https://www.avito.st/stub_avatars/_/14_96x96.png
+                  "128x128": https://www.avito.st/stub_avatars/_/14_128x128.png
+                  "256x256": https://www.avito.st/stub_avatars/_/14_256x256.png
+                  "72x72": https://www.avito.st/stub_avatars/_/14_72x72.png
+                  "64x64": https://www.avito.st/stub_avatars/_/14_64x64.png
+              url: https://avito.ru/user/db65c00c946dc404e11f14755465453b/profile?id=1768287444&src=messenger
+            name: Guldan
+            id: 94235311
+    Messages:
+      type: array
+      items:
+        $ref: '#/components/schemas/Messages_inner'
+      x-schema-name: Messages
+    addBlacklistRequestBody:
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/addBlacklistRequestBody_users'
+    authError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/authError_error'
+    badRequestError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/badRequestError_error'
+    forbiddenError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/forbiddenError_error'
+    notFoundError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/notFoundError_error'
+    purchasingError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/purchasingError_error'
+    sendMessageRequestBody:
+      required:
+      - url
+      type: object
+      properties:
+        message:
+          $ref: '#/components/schemas/sendMessageRequestBody_message'
+        type:
+          type: string
+          description: Тип сообщения
+          enum:
+          - text
+    serviceError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/serviceError_error'
+    serviceUnavailableError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/serviceUnavailableError_error'
+    validatingError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/validatingError_error'
+    webhookSubscribeRequestBody:
+      required:
+      - url
+      type: object
+      properties:
+        url:
+          type: string
+          description: Url на который будут отправляться нотификации
+    inline_response_200:
+      type: object
+      properties:
+        content:
+          $ref: '#/components/schemas/inline_response_200_content'
+        created:
+          type: integer
+          example: 1563202313
+        direction:
+          type: string
+          example: out
+        id:
+          type: string
+          example: bdcc5bac2d00345f1cc66fa657813958
+        type:
+          type: string
+          example: text
+      example:
+        created: 1563202313
+        id: bdcc5bac2d00345f1cc66fa657813958
+        type: text
+        content:
+          text: привет
+        direction: out
+    inline_response_200_1:
+      type: object
+      properties:
+        ok:
+          type: boolean
+          example: true
+      example:
+        ok: true
+    Chat_context_value_images_main:
+      type: object
+      properties:
+        "140x105":
+          type: string
+          example: https://01-img-staging-proxy.k.avito.ru/140x105/5815183159.jpg
+      example:
+        "140x105": https://01-img-staging-proxy.k.avito.ru/140x105/5815183159.jpg
+    Chat_context_value_images:
+      type: object
+      properties:
+        count:
+          type: integer
+          format: int32
+          example: 4
+        main:
+          $ref: '#/components/schemas/Chat_context_value_images_main'
+      example:
+        count: 4
+        main:
+          "140x105": https://01-img-staging-proxy.k.avito.ru/140x105/5815183159.jpg
+    Chat_context_value:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 1768287444
+        images:
+          $ref: '#/components/schemas/Chat_context_value_images'
+        price_string:
+          type: string
+          example: 300 000 ₽
+        status_id:
+          type: integer
+          format: int32
+          example: 10
+        title:
+          type: string
+          example: Mazda 3 2008
+        url:
+          type: string
+          example: https://avito.ru/moskva/avtomobili/mazda_3_2008_1768287444
+        user_id:
+          type: integer
+          format: int32
+          example: 141906442
+      example:
+        images:
+          count: 4
+          main:
+            "140x105": https://01-img-staging-proxy.k.avito.ru/140x105/5815183159.jpg
+        status_id: 10
+        price_string: 300 000 ₽
+        user_id: 141906442
+        id: 1768287444
+        title: Mazda 3 2008
+        url: https://avito.ru/moskva/avtomobili/mazda_3_2008_1768287444
+    Chat_context:
+      type: object
+      properties:
+        type:
+          type: string
+          example: item
+        value:
+          $ref: '#/components/schemas/Chat_context_value'
+      example:
+        type: item
+        value:
+          images:
+            count: 4
+            main:
+              "140x105": https://01-img-staging-proxy.k.avito.ru/140x105/5815183159.jpg
+          status_id: 10
+          price_string: 300 000 ₽
+          user_id: 141906442
+          id: 1768287444
+          title: Mazda 3 2008
+          url: https://avito.ru/moskva/avtomobili/mazda_3_2008_1768287444
+    Chat_last_message_content_link:
+      type: object
+      properties:
+        text:
+          type: string
+          example: habr.com
+        url:
+          type: string
+          example: habr.com
+      example:
+        text: habr.com
+        url: habr.com
+    Chat_last_message_content:
+      type: object
+      properties:
+        link:
+          $ref: '#/components/schemas/Chat_last_message_content_link'
+      example:
+        link:
+          text: habr.com
+          url: habr.com
+    Chat_last_message:
+      type: object
+      properties:
+        author_id:
+          type: integer
+          format: int32
+          example: 94235311
+        content:
+          $ref: '#/components/schemas/Chat_last_message_content'
+        created:
+          type: integer
+          format: int32
+          example: 1571654040
+        direction:
+          type: string
+          example: out
+        id:
+          type: string
+        type:
+          type: string
+          example: link
+      example:
+        created: 1571654040
+        id: id
+        author_id: 94235311
+        type: link
+        content:
+          link:
+            text: habr.com
+            url: habr.com
+        direction: out
+    Chat_public_user_profile_avatar_images:
+      type: object
+      properties:
+        "128x128":
+          type: string
+          example: https://www.avito.st/stub_avatars/_/14_128x128.png
+        "192x192":
+          type: string
+          example: https://www.avito.st/stub_avatars/_/14_192x192.png
+        "24x24":
+          type: string
+          example: https://www.avito.st/stub_avatars/_/14_24x24.png
+        "256x256":
+          type: string
+          example: https://www.avito.st/stub_avatars/_/14_256x256.png
+        "36x36":
+          type: string
+          example: https://www.avito.st/stub_avatars/_/14_36x36.png
+        "48x48":
+          type: string
+          example: https://www.avito.st/stub_avatars/_/14_48x48.png
+        "64x64":
+          type: string
+          example: https://www.avito.st/stub_avatars/_/14_64x64.png
+        "72x72":
+          type: string
+          example: https://www.avito.st/stub_avatars/_/14_72x72.png
+        "96x96":
+          type: string
+          example: https://www.avito.st/stub_avatars/_/14_96x96.png
+      example:
+        "48x48": https://www.avito.st/stub_avatars/_/14_48x48.png
+        "192x192": https://www.avito.st/stub_avatars/_/14_192x192.png
+        "36x36": https://www.avito.st/stub_avatars/_/14_36x36.png
+        "24x24": https://www.avito.st/stub_avatars/_/14_24x24.png
+        "96x96": https://www.avito.st/stub_avatars/_/14_96x96.png
+        "128x128": https://www.avito.st/stub_avatars/_/14_128x128.png
+        "256x256": https://www.avito.st/stub_avatars/_/14_256x256.png
+        "72x72": https://www.avito.st/stub_avatars/_/14_72x72.png
+        "64x64": https://www.avito.st/stub_avatars/_/14_64x64.png
+    Chat_public_user_profile_avatar:
+      type: object
+      properties:
+        default:
+          type: string
+          example: https://www.avito.st/stub_avatars/_/14_256x256.png
+        images:
+          $ref: '#/components/schemas/Chat_public_user_profile_avatar_images'
+      example:
+        default: https://www.avito.st/stub_avatars/_/14_256x256.png
+        images:
+          "48x48": https://www.avito.st/stub_avatars/_/14_48x48.png
+          "192x192": https://www.avito.st/stub_avatars/_/14_192x192.png
+          "36x36": https://www.avito.st/stub_avatars/_/14_36x36.png
+          "24x24": https://www.avito.st/stub_avatars/_/14_24x24.png
+          "96x96": https://www.avito.st/stub_avatars/_/14_96x96.png
+          "128x128": https://www.avito.st/stub_avatars/_/14_128x128.png
+          "256x256": https://www.avito.st/stub_avatars/_/14_256x256.png
+          "72x72": https://www.avito.st/stub_avatars/_/14_72x72.png
+          "64x64": https://www.avito.st/stub_avatars/_/14_64x64.png
+    Chat_public_user_profile:
+      type: object
+      properties:
+        avatar:
+          $ref: '#/components/schemas/Chat_public_user_profile_avatar'
+        item_id:
+          type: integer
+          format: int32
+          example: 1768287444
+        url:
+          type: string
+          example: https://avito.ru/user/db65c00c946dc404e11f14755465453b/profile?id=1768287444&src=messenger
+        user_id:
+          type: integer
+          format: int32
+          example: 94235311
+      example:
+        item_id: 1768287444
+        user_id: 94235311
+        avatar:
+          default: https://www.avito.st/stub_avatars/_/14_256x256.png
+          images:
+            "48x48": https://www.avito.st/stub_avatars/_/14_48x48.png
+            "192x192": https://www.avito.st/stub_avatars/_/14_192x192.png
+            "36x36": https://www.avito.st/stub_avatars/_/14_36x36.png
+            "24x24": https://www.avito.st/stub_avatars/_/14_24x24.png
+            "96x96": https://www.avito.st/stub_avatars/_/14_96x96.png
+            "128x128": https://www.avito.st/stub_avatars/_/14_128x128.png
+            "256x256": https://www.avito.st/stub_avatars/_/14_256x256.png
+            "72x72": https://www.avito.st/stub_avatars/_/14_72x72.png
+            "64x64": https://www.avito.st/stub_avatars/_/14_64x64.png
+        url: https://avito.ru/user/db65c00c946dc404e11f14755465453b/profile?id=1768287444&src=messenger
+    Chat_users:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          example: 94235311
+        name:
+          type: string
+          example: Guldan
+        public_user_profile:
+          $ref: '#/components/schemas/Chat_public_user_profile'
+      example:
+        public_user_profile:
+          item_id: 1768287444
+          user_id: 94235311
+          avatar:
+            default: https://www.avito.st/stub_avatars/_/14_256x256.png
+            images:
+              "48x48": https://www.avito.st/stub_avatars/_/14_48x48.png
+              "192x192": https://www.avito.st/stub_avatars/_/14_192x192.png
+              "36x36": https://www.avito.st/stub_avatars/_/14_36x36.png
+              "24x24": https://www.avito.st/stub_avatars/_/14_24x24.png
+              "96x96": https://www.avito.st/stub_avatars/_/14_96x96.png
+              "128x128": https://www.avito.st/stub_avatars/_/14_128x128.png
+              "256x256": https://www.avito.st/stub_avatars/_/14_256x256.png
+              "72x72": https://www.avito.st/stub_avatars/_/14_72x72.png
+              "64x64": https://www.avito.st/stub_avatars/_/14_64x64.png
+          url: https://avito.ru/user/db65c00c946dc404e11f14755465453b/profile?id=1768287444&src=messenger
+        name: Guldan
+        id: 94235311
+    Messages_inner:
+      type: object
+      properties:
+        author_id:
+          type: integer
+          format: int64
+          example: 94235311
+        content:
+          type: object
+          properties:
+            call:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum:
+                  - missed
+                target_user_id:
+                  type: integer
+                  format: int64
+                  example: 94235311
+              nullable: true
+              example:
+                target_user_id: 94235311
+                status: missed
+            image:
+              type: object
+              properties:
+                sizes:
+                  type: object
+                  example:
+                    "1280x960": https://img.k.avito.ru/chat/1280x960/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                    "140x105": https://img.k.avito.ru/chat/140x105/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                    "32x32": https://img.k.avito.ru/chat/32x32/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                    "640x480": https://img.k.avito.ru/chat/640x480/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+              nullable: true
+              example:
+                sizes:
+                  "1280x960": https://img.k.avito.ru/chat/1280x960/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                  "140x105": https://img.k.avito.ru/chat/140x105/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                  "32x32": https://img.k.avito.ru/chat/32x32/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                  "640x480": https://img.k.avito.ru/chat/640x480/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+            item:
+              type: object
+              properties:
+                image_url:
+                  type: string
+                  example: https://img.k.avito.ru/140x105/5758559461.jpg
+                item_url:
+                  type: string
+                  example: https://avito.ru/item_url
+                price_string:
+                  type: string
+                  nullable: true
+                  example: 1 232 323 ₽
+                title:
+                  type: string
+                  example: Объявление
+              nullable: true
+              example:
+                price_string: 1 232 323 ₽
+                image_url: https://img.k.avito.ru/140x105/5758559461.jpg
+                item_url: https://avito.ru/item_url
+                title: Объявление
+            link:
+              type: object
+              properties:
+                preview:
+                  type: object
+                  properties:
+                    description:
+                      type: string
+                      example: Лучшие публикации за последние 24 часа
+                    domain:
+                      type: string
+                      example: habr.com
+                    images:
+                      type: object
+                      nullable: true
+                      example:
+                        "1280x960": https://img.k.avito.ru/chat/1280x960/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                        "140x105": https://img.k.avito.ru/chat/140x105/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                        "32x32": https://img.k.avito.ru/chat/32x32/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                        "640x480": https://img.k.avito.ru/chat/640x480/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                    title:
+                      type: string
+                      example: Лучшие публикации за сутки / Хабр
+                    url:
+                      type: string
+                      example: https://habr.com/ru/
+                  nullable: true
+                  example:
+                    images:
+                      "1280x960": https://img.k.avito.ru/chat/1280x960/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                      "140x105": https://img.k.avito.ru/chat/140x105/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                      "32x32": https://img.k.avito.ru/chat/32x32/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                      "640x480": https://img.k.avito.ru/chat/640x480/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                    domain: habr.com
+                    description: Лучшие публикации за последние 24 часа
+                    title: Лучшие публикации за сутки / Хабр
+                    url: https://habr.com/ru/
+                text:
+                  type: string
+                  example: habr.com
+                url:
+                  type: string
+                  example: habr.com
+              nullable: true
+              example:
+                preview:
+                  images:
+                    "1280x960": https://img.k.avito.ru/chat/1280x960/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                    "140x105": https://img.k.avito.ru/chat/140x105/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                    "32x32": https://img.k.avito.ru/chat/32x32/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                    "640x480": https://img.k.avito.ru/chat/640x480/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                  domain: habr.com
+                  description: Лучшие публикации за последние 24 часа
+                  title: Лучшие публикации за сутки / Хабр
+                  url: https://habr.com/ru/
+                text: habr.com
+                url: habr.com
+            location:
+              type: object
+              properties:
+                kind:
+                  type: string
+                  example: street
+                  enum:
+                  - house
+                  - street
+                lat:
+                  type: number
+                  format: float
+                  example: 55.599799
+                lon:
+                  type: number
+                  format: float
+                  example: 37.603954
+                text:
+                  type: string
+                  example: "Москва, Варшавское шоссе"
+                title:
+                  type: string
+                  example: "Москва, Варшавское шоссе"
+              nullable: true
+              example:
+                kind: street
+                lon: 37.603954
+                text: "Москва, Варшавское шоссе"
+                title: "Москва, Варшавское шоссе"
+                lat: 55.599799
+            text:
+              type: string
+              nullable: true
+              example: привет!
+          example:
+            call:
+              target_user_id: 94235311
+              status: missed
+            image:
+              sizes:
+                "1280x960": https://img.k.avito.ru/chat/1280x960/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                "140x105": https://img.k.avito.ru/chat/140x105/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                "32x32": https://img.k.avito.ru/chat/32x32/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                "640x480": https://img.k.avito.ru/chat/640x480/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+            item:
+              price_string: 1 232 323 ₽
+              image_url: https://img.k.avito.ru/140x105/5758559461.jpg
+              item_url: https://avito.ru/item_url
+              title: Объявление
+            link:
+              preview:
+                images:
+                  "1280x960": https://img.k.avito.ru/chat/1280x960/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                  "140x105": https://img.k.avito.ru/chat/140x105/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                  "32x32": https://img.k.avito.ru/chat/32x32/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                  "640x480": https://img.k.avito.ru/chat/640x480/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                domain: habr.com
+                description: Лучшие публикации за последние 24 часа
+                title: Лучшие публикации за сутки / Хабр
+                url: https://habr.com/ru/
+              text: habr.com
+              url: habr.com
+            location:
+              kind: street
+              lon: 37.603954
+              text: "Москва, Варшавское шоссе"
+              title: "Москва, Варшавское шоссе"
+              lat: 55.599799
+            text: привет!
+        created:
+          type: integer
+          format: int64
+          example: 1571654040
+        direction:
+          type: string
+          example: out
+          enum:
+          - in
+          - out
+        id:
+          type: string
+        type:
+          type: string
+          enum:
+          - text
+          - image
+          - link
+          - item
+          - location
+          - call
+          - deleted
+      example:
+        created: 1571654040
+        id: id
+        author_id: 94235311
+        type: text
+        content:
+          call:
+            target_user_id: 94235311
+            status: missed
+          image:
+            sizes:
+              "1280x960": https://img.k.avito.ru/chat/1280x960/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+              "140x105": https://img.k.avito.ru/chat/140x105/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+              "32x32": https://img.k.avito.ru/chat/32x32/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+              "640x480": https://img.k.avito.ru/chat/640x480/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+          item:
+            price_string: 1 232 323 ₽
+            image_url: https://img.k.avito.ru/140x105/5758559461.jpg
+            item_url: https://avito.ru/item_url
+            title: Объявление
+          link:
+            preview:
+              images:
+                "1280x960": https://img.k.avito.ru/chat/1280x960/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                "140x105": https://img.k.avito.ru/chat/140x105/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                "32x32": https://img.k.avito.ru/chat/32x32/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+                "640x480": https://img.k.avito.ru/chat/640x480/5083651369.3e798a9bf88345ae8fe85ff891266b24.jpg
+              domain: habr.com
+              description: Лучшие публикации за последние 24 часа
+              title: Лучшие публикации за сутки / Хабр
+              url: https://habr.com/ru/
+            text: habr.com
+            url: habr.com
+          location:
+            kind: street
+            lon: 37.603954
+            text: "Москва, Варшавское шоссе"
+            title: "Москва, Варшавское шоссе"
+            lat: 55.599799
+          text: привет!
+        direction: out
+    addBlacklistRequestBody_context:
+      type: object
+      properties:
+        item_id:
+          type: integer
+          format: int64
+        reason_id:
+          type: integer
+          description: "причина, по которой блокируем пользователя, 1 - спам, 2 -\
+            \ мошенничество, 3 - оскорбления и хамство, 4 - другая причина"
+          enum:
+          - 1
+          - 2
+          - 3
+          - 4
+    addBlacklistRequestBody_users:
+      type: object
+      properties:
+        context:
+          $ref: '#/components/schemas/addBlacklistRequestBody_context'
+        user_id:
+          type: integer
+          description: id пользователя которого хотим заблокировать
+          format: int64
+          example: 94235311
+    authError_error:
+      required:
+      - code
+      - message
+      type: object
+      properties:
+        code:
+          type: integer
+          description: Код ошибки
+          format: int32
+          example: 401
+        message:
+          type: string
+          description: Сообщение об ошибке
+          example: Unauthorized
+    badRequestError_error:
+      required:
+      - code
+      - message
+      type: object
+      properties:
+        code:
+          type: integer
+          description: Код ошибки
+          format: int32
+          example: 400
+        message:
+          type: string
+          description: Сообщение об ошибке
+          example: Bad Request
+    forbiddenError_error:
+      required:
+      - code
+      - message
+      type: object
+      properties:
+        code:
+          type: integer
+          description: Код ошибки
+          format: int32
+          example: 403
+        message:
+          type: string
+          description: Сообщение об ошибке
+          example: Forbidden
+    notFoundError_error:
+      required:
+      - code
+      - message
+      type: object
+      properties:
+        code:
+          type: integer
+          description: Код ошибки
+          format: int32
+          example: 404
+        message:
+          type: string
+          description: Сообщение об ошибке
+          example: Not found
+    purchasingError_error:
+      required:
+      - code
+      - message
+      type: object
+      properties:
+        code:
+          type: integer
+          description: Код ошибки
+          format: int32
+          example: 402
+        message:
+          type: string
+          description: Сообщение об ошибке
+          example: Payment required
+    sendMessageRequestBody_message:
+      type: object
+      properties:
+        text:
+          type: string
+          description: Текст сообщения
+    serviceError_error:
+      required:
+      - code
+      - message
+      type: object
+      properties:
+        code:
+          type: integer
+          description: Код ошибки
+          format: int32
+          example: 500
+        message:
+          type: string
+          description: Описание ошибки
+          example: "Error while processing request. Please, contact support"
+    serviceUnavailableError_error:
+      required:
+      - code
+      - message
+      type: object
+      properties:
+        code:
+          type: integer
+          description: Код ошибки
+          format: int32
+          example: 503
+        message:
+          type: string
+          description: Описание ошибки
+          example: "Service temporarily unavailable. Please, contact support"
+    validatingError_error:
+      required:
+      - code
+      - message
+      type: object
+      properties:
+        code:
+          type: integer
+          description: Код ошибки
+          format: int32
+          example: 400
+        fields:
+          type: object
+          description: Информация об ошибке валидации параметров в формате ключ-значение
+          nullable: true
+        message:
+          type: string
+          description: Сообщение об ошибке
+          example: Validation error
+    inline_response_200_content:
+      type: object
+      properties:
+        text:
+          type: string
+          example: привет
+      example:
+        text: привет
+  parameters:
+    authHeader:
+      name: Authorization
+      in: header
+      description: Токен для авторизации
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+        example: Bearer ACCESS_TOKEN
+    chatId:
+      name: chat_id
+      in: path
+      description: Идентификатор чата (клиента)
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+    chatTypes:
+      name: chat_types
+      in: query
+      description: "Фильтрация возвращаемых чатов. \n* u2i — чаты по объявлениям;\n\
+        * u2u — чаты между пользователями;\n"
+      required: false
+      style: form
+      explode: true
+      schema:
+        type: array
+        example: "u2i,u2u"
+        items:
+          type: string
+          enum:
+          - u2i
+          - u2u
+    itemIds:
+      name: item_ids
+      in: query
+      description: Получение чатов только по объявлениям с указанными item_id
+      required: false
+      style: form
+      explode: true
+      schema:
+        type: array
+        example: "12345,6789"
+        items:
+          type: integer
+          format: int64
+    limit:
+      name: limit
+      in: query
+      description: Количество сообщений / чатов для запроса
+      required: false
+      style: form
+      explode: true
+      schema:
+        maximum: 100
+        minimum: 1
+        type: integer
+        format: int32
+        example: 50
+        default: 100
+    messageId:
+      name: message_id
+      in: path
+      description: Идентификатор сообщения
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+    offset:
+      name: offset
+      in: query
+      description: Сдвиг сообщений / чатов для запроса
+      required: false
+      style: form
+      explode: true
+      schema:
+        type: integer
+        format: int32
+        example: 50
+        default: 0
+    unreadOnly:
+      name: unread_only
+      in: query
+      description: При значении true метод возвращает только непрочитанные чаты
+      required: false
+      style: form
+      explode: true
+      schema:
+        type: boolean
+        example: true
+        default: false
+    userId:
+      name: user_id
+      in: path
+      description: Идентификатор пользователя (клиента)
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: integer
+        format: int64
+  headers:
+    X-RateLimit-Limit:
+      description: Количество запросов в минуту
+      style: simple
+      explode: false
+      schema:
+        type: integer
+        format: int32
+    X-RateLimit-Remaining:
+      description: Доступное количество запросов в текущем временном окне
+      style: simple
+      explode: false
+      schema:
+        type: integer
+        format: int32
+  securitySchemes:
+    AuthorizationCode:
+      type: oauth2
+      description: "Это API использует OAuth 2 с механизмом authorization_code. Ис\
+        пользуйте его для доступа к данным других пользователей при разработке сто\
+        роннего приложения. [Подробнее](/api-catalog/auth/documentation#tag/ApplicationAccess)"
+      flows:
+        authorizationCode:
+          authorizationUrl: https://avito.ru/oauth
+          tokenUrl: https://api.avito.ru/token
+          scopes:
+            autoload:reports: Получение отчетов Автозагрузки
+            items:apply_vas: Применение дополнительных услуг
+            items:info: Получение информации об объявлениях
+            job:cv: Получение информации резюме
+            job:negotiations: Получение информации об откликах на вакансии
+            job:write: Изменение объявлений вертикали Работа
+            messenger:read: Чтение сообщений в мессенджере Авито
+            messenger:write: Модифицирование сообщений в мессенджере Авито
+            short_term_rent:read: Получение информации об объявлениях краткосрочной
+              аренды
+            short_term_rent:write: Изменение объявлений краткосрочной аренды
+            stats:read: Получение статистики объявлений
+            user:read: Получение информации о пользователе
+            user_balance:read: Получение баланса пользователя
+            user_operations:read: Получение истории операций пользователя
+    ClientCredentials:
+      type: oauth2
+      description: "Это API использует OAuth 2 с механизмом client_credentials. Ис\
+        пользуйте его для доступа к возможностям своей личной учетной записи. [Под\
+        робнее](#tag/Access)"
+      flows:
+        clientCredentials:
+          tokenUrl: https://api.avito.ru/token
+          scopes: {}

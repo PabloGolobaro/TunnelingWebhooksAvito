@@ -1,0 +1,694 @@
+openapi: 3.0.0
+info:
+  title: Информация о пользователе
+  description: "API для получения баланса кошелька пользователя, истории операций\
+    \ и инфорации об авторизованном пользователе\n**Авито API для бизнеса предоста\
+    вляется согласно [Условиям использования](https://api.avito.ru/docs/public/APITermsOfServiceV1.pdf).**\
+    \    \n"
+  contact:
+    email: supportautoload@avito.ru
+  version: "1"
+servers:
+- url: https://api.avito.ru/
+tags:
+- name: User
+  description: |
+    # API для получения баланса кошелька пользователя, истории операций и инфорации об авторизованном пользователе
+    Описание API произведено в формате [**Swagger 3.0**](https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md).
+    Вы можете использовать данный файл для ознакомления с методами API, а также для генерации базового кода для работы с API на удобном для вас языке программирования с помощью утилиты [**Swagger Codegen**](https://swagger.io/swagger-codegen/) или online сервиса [**Swagger Editor**](https://editor.swagger.io/).
+
+    **Авито API для бизнеса предоставляется согласно [Условиям использования](https://api.avito.ru/docs/public/APITermsOfServiceV1.pdf).**
+    По всем вопросам работы с API необходимо обращаться в Службу Поддержки профессиональных инструментов:
+    <li>телефон: <b>+7 495 777-10-66</b></li>
+    <li>email: <a href="mailto:supportautoload@avito.ru">supportautoload@avito.ru</a></li>
+
+    # Типы авторизации
+
+    Для использования данного API запрос должен быть авторизован. В данный момент API Авито использует следующие механизмы авторизации.
+
+    <!-- ReDoc-Inject: <security-definitions> -->
+
+    Подробнее о каждом механизме и его назначении можно прочитать в соответствующем разделе.
+  x-displayName: Пользователь
+paths:
+  /core/v1/accounts/operations_history/:
+    post:
+      tags:
+      - User
+      summary: Получение истории операций пользователя
+      description: |
+        Возвращает список операций пользователя (списания/пополнение кошелька - деньги и бонусы) за определенный временной период (задается пользователем)
+      operationId: postOperationsHistory
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен для авторизации
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: Bearer ACCESS_TOKEN
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestOperationsHistory'
+            example:
+              dateTimeFrom: 2020-04-01T00:00:00
+              dateTimeTo: 2020-04-08T00:00:00
+      responses:
+        "200":
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseOperationsHistory'
+              example:
+                operations:
+                - amountBonus: 0
+                  amountRub: 119
+                  amountTotal: 119
+                  itemId: 1853257996
+                  operationName: Резервирование средств. Услуга «Сделать XL объявлением»
+                    для объявления №1853257996
+                  operationType: резервирование средств под услугу
+                  serviceId: 16
+                  serviceName: Сделать XL объявлением
+                  serviceType: vas
+                  updatedAt: 2020-04-27T10:51:50.012436+03:00
+        "401":
+          description: Требуется аутентификация
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/authError'
+        "500":
+          description: Внутренняя ошибка метода API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/serviceError'
+        "503":
+          description: Метод API временно недоступен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/serviceUnavailableError'
+      security:
+      - AuthorizationCode:
+        - user_operations:read
+      - ClientCredentials: []
+  /core/v1/accounts/self:
+    get:
+      tags:
+      - User
+      summary: Получение информации об авторизованном пользователе
+      description: |
+        Возвращает идентификатор пользователя и его регистрационные данные
+      operationId: getUserInfoSelf
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен для авторизации
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: Bearer ACCESS_TOKEN
+      responses:
+        "200":
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserInfoSelf'
+        "401":
+          description: Требуется аутентификация
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/authError'
+        "403":
+          description: Неверный Token/Oauth Scope
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forbiddenError'
+        "500":
+          description: Внутренняя ошибка метода API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/serviceError'
+        "503":
+          description: Метод API временно недоступен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/serviceUnavailableError'
+      security:
+      - AuthorizationCode:
+        - user:read
+      - ClientCredentials: []
+  /core/v1/accounts/{user_id}/balance/:
+    get:
+      tags:
+      - User
+      summary: Получение баланса кошелька пользователя
+      description: |
+        Возвращает сумму реальных денежных средств в кошельке, а также сумму бонусных средств
+      operationId: getUserBalance
+      parameters:
+      - name: Authorization
+        in: header
+        description: Токен для авторизации
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: string
+          example: Bearer ACCESS_TOKEN
+      - name: user_id
+        in: path
+        description: Идентификатор пользователя (клиента)
+        required: true
+        style: simple
+        explode: false
+        schema:
+          type: integer
+          format: int64
+      responses:
+        "200":
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Balance'
+        "401":
+          description: Требуется аутентификация
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/authError'
+        "403":
+          description: Неверный Token/Oauth Scope
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/forbiddenError'
+        "404":
+          description: Неверный user_id в запросе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/notFoundError'
+        "500":
+          description: Внутренняя ошибка метода API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/serviceError'
+        "503":
+          description: Метод API временно недоступен
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/serviceUnavailableError'
+      security:
+      - AuthorizationCode:
+        - user_balance:read
+      - ClientCredentials: []
+components:
+  schemas:
+    Balance:
+      type: object
+      properties:
+        bonus:
+          type: number
+          description: Сумма бонусных средств
+          format: float
+        real:
+          type: number
+          description: Сумма реальных денежных средств
+          format: float
+      example:
+        bonus: 0.8008282
+        real: 6.0274563
+    RequestOperationsHistory:
+      required:
+      - dateTimeFrom
+      - dateTimeTo
+      type: object
+      properties:
+        dateTimeFrom:
+          type: string
+          description: Время выборки от. Не далее одного года в прошлое от текущего
+            момента.
+          format: date-time
+        dateTimeTo:
+          type: string
+          description: Время выборки до (диапазон между dateTimeFrom и dateTimeTo
+            должен быть не более одной недели)
+          format: date-time
+    ResponseOperationsHistory:
+      type: object
+      properties:
+        result:
+          $ref: '#/components/schemas/ResponseOperationsHistory_result'
+      example:
+        result:
+          operations:
+          - serviceType: vas
+            itemId: 5
+            amountTotal: 1.46581298050294517310021547018550336360931396484375
+            operationName: operationName
+            operationType: списание в счёт кредита
+            amountRub: 6.02745618307040320615897144307382404804229736328125
+            serviceId: 5
+            serviceName: serviceName
+            amountBonus: 0.80082819046101150206595775671303272247314453125
+            updatedAt: updatedAt
+          - serviceType: vas
+            itemId: 5
+            amountTotal: 1.46581298050294517310021547018550336360931396484375
+            operationName: operationName
+            operationType: списание в счёт кредита
+            amountRub: 6.02745618307040320615897144307382404804229736328125
+            serviceId: 5
+            serviceName: serviceName
+            amountBonus: 0.80082819046101150206595775671303272247314453125
+            updatedAt: updatedAt
+    ResponseOperationsHistoryItem:
+      type: object
+      properties:
+        amountBonus:
+          type: number
+          description: Сумма бонусов
+        amountRub:
+          type: number
+          description: Сумма реальных денег
+        amountTotal:
+          type: number
+          description: Сумма операции всего
+        itemId:
+          type: integer
+          description: ID объявления
+        operationName:
+          type: string
+          description: Название операции
+        operationType:
+          type: string
+          description: Тип операции
+          enum:
+          - списание в счёт кредита
+          - постоплата
+          - внесение CPA аванса
+          - возврат CPA аванса
+          - аванс
+          - возврат аванса
+          - списание средств с кошелька в доход (не за оказанные услуги)
+          - сжигание бонусов
+          - резервирование под автостратегию
+          - возврат зарезервированных средств под автостатегию на кошелек
+          - резервирование средств под услугу
+          - возврат зарзервированных средств на баланс кошелька
+          - признание выручки
+          - списание остатка
+          - сторно
+          - опротестовано
+          - чарджбэк
+        serviceId:
+          type: integer
+          description: Код типа услуги
+        serviceName:
+          type: string
+          description: Название конкретного типа услуги
+        serviceType:
+          type: string
+          description: Тип услуги
+          enum:
+          - vas
+          - perf_vas
+          - lf
+          - cv
+          - tariff
+          - subscription
+          - cpa
+          - bundle
+        updatedAt:
+          type: string
+          description: Дата/время совершения операции
+      example:
+        serviceType: vas
+        itemId: 5
+        amountTotal: 1.46581298050294517310021547018550336360931396484375
+        operationName: operationName
+        operationType: списание в счёт кредита
+        amountRub: 6.02745618307040320615897144307382404804229736328125
+        serviceId: 5
+        serviceName: serviceName
+        amountBonus: 0.80082819046101150206595775671303272247314453125
+        updatedAt: updatedAt
+    UserInfoSelf:
+      type: object
+      properties:
+        email:
+          type: string
+          description: Email пользователя
+          example: example@domain.com
+        id:
+          type: integer
+          description: Идентификатор пользователя
+          format: int32
+          example: 94235311
+        name:
+          type: string
+          description: Имя пользователя
+          example: Петр
+        phone:
+          type: string
+          description: Телефон пользователя по умолчанию. При отсутствии подтвержденного
+            телефона вернется пустая строка
+          example: "71112223344"
+        profile_url:
+          type: string
+          description: Ссылка на профиль пользователя
+          example: https://avito.ru/user/7d04cdc3a12726eee72c6851c953ac54/profile
+      example:
+        phone: "71112223344"
+        profile_url: https://avito.ru/user/7d04cdc3a12726eee72c6851c953ac54/profile
+        name: Петр
+        id: 94235311
+        email: example@domain.com
+    authError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/authError_error'
+    forbiddenError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/forbiddenError_error'
+    notFoundError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/notFoundError_error'
+    serviceError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/serviceError_error'
+    serviceUnavailableError:
+      type: object
+      properties:
+        error:
+          $ref: '#/components/schemas/serviceUnavailableError_error'
+    ResponseOperationsHistory_result:
+      type: object
+      properties:
+        operations:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResponseOperationsHistoryItem'
+      example:
+        operations:
+        - serviceType: vas
+          itemId: 5
+          amountTotal: 1.46581298050294517310021547018550336360931396484375
+          operationName: operationName
+          operationType: списание в счёт кредита
+          amountRub: 6.02745618307040320615897144307382404804229736328125
+          serviceId: 5
+          serviceName: serviceName
+          amountBonus: 0.80082819046101150206595775671303272247314453125
+          updatedAt: updatedAt
+        - serviceType: vas
+          itemId: 5
+          amountTotal: 1.46581298050294517310021547018550336360931396484375
+          operationName: operationName
+          operationType: списание в счёт кредита
+          amountRub: 6.02745618307040320615897144307382404804229736328125
+          serviceId: 5
+          serviceName: serviceName
+          amountBonus: 0.80082819046101150206595775671303272247314453125
+          updatedAt: updatedAt
+    authError_error:
+      required:
+      - code
+      - message
+      type: object
+      properties:
+        code:
+          type: integer
+          description: Код ошибки
+          format: int32
+          example: 401
+        message:
+          type: string
+          description: Сообщение об ошибке
+          example: Unauthorized
+    forbiddenError_error:
+      required:
+      - code
+      - message
+      type: object
+      properties:
+        code:
+          type: integer
+          description: Код ошибки
+          format: int32
+          example: 403
+        message:
+          type: string
+          description: Сообщение об ошибке
+          example: Forbidden
+    notFoundError_error:
+      required:
+      - code
+      - message
+      type: object
+      properties:
+        code:
+          type: integer
+          description: Код ошибки
+          format: int32
+          example: 404
+        message:
+          type: string
+          description: Сообщение об ошибке
+          example: Not found
+    serviceError_error:
+      required:
+      - code
+      - message
+      type: object
+      properties:
+        code:
+          type: integer
+          description: Код ошибки
+          format: int32
+          example: 500
+        message:
+          type: string
+          description: Описание ошибки
+          example: "Error while processing request. Please, contact support"
+    serviceUnavailableError_error:
+      required:
+      - code
+      - message
+      type: object
+      properties:
+        code:
+          type: integer
+          description: Код ошибки
+          format: int32
+          example: 503
+        message:
+          type: string
+          description: Описание ошибки
+          example: "Service temporarily unavailable. Please, contact support"
+  parameters:
+    authHeader:
+      name: Authorization
+      in: header
+      description: Токен для авторизации
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+        example: Bearer ACCESS_TOKEN
+    chatId:
+      name: chat_id
+      in: path
+      description: Идентификатор чата (клиента)
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+    itemIds:
+      name: item_ids
+      in: query
+      required: false
+      style: form
+      explode: true
+      schema:
+        type: string
+        example: "12345,6789"
+    limit:
+      name: limit
+      in: query
+      description: Количество сообщений на странице (положительное число больше 0
+        и меньше 100)
+      required: false
+      style: form
+      explode: true
+      schema:
+        type: integer
+        format: int32
+        example: 50
+        default: 100
+    messageId:
+      name: message_id
+      in: path
+      description: Идентификатор сообщения
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: string
+    offset:
+      name: offset
+      in: query
+      required: false
+      style: form
+      explode: true
+      schema:
+        type: integer
+        format: int32
+        example: 50
+        default: 0
+    page:
+      name: page
+      in: query
+      description: Номер страницы
+      required: false
+      style: form
+      explode: true
+      schema:
+        type: integer
+        format: int32
+    pathItemId:
+      name: item_id
+      in: path
+      description: Идентификатор объявления на сайте
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: integer
+        format: int64
+    pathUserId:
+      name: user_id
+      in: path
+      description: Номер пользователя в Личном кабинете Авито
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: integer
+        format: int64
+    pathVacancyId:
+      name: vacancy_id
+      in: path
+      description: Идентификатор вакансии на сайте
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: integer
+        format: int64
+    perPage:
+      name: per_page
+      in: query
+      description: Количество ресурсов на страницу
+      required: false
+      style: form
+      explode: true
+      schema:
+        type: integer
+        format: int32
+    unreadOnly:
+      name: unread_only
+      in: query
+      required: false
+      style: form
+      explode: true
+      schema:
+        type: boolean
+        example: true
+    userId:
+      name: user_id
+      in: path
+      description: Идентификатор пользователя (клиента)
+      required: true
+      style: simple
+      explode: false
+      schema:
+        type: integer
+        format: int64
+  headers:
+    X-RateLimit-Limit:
+      description: Количество запросов в минуту
+      style: simple
+      explode: false
+      schema:
+        type: integer
+        format: int32
+    X-RateLimit-Remaining:
+      description: Доступное количество запросов в текущем временном окне
+      style: simple
+      explode: false
+      schema:
+        type: integer
+        format: int32
+  securitySchemes:
+    AuthorizationCode:
+      type: oauth2
+      description: "Это API использует OAuth 2 с механизмом authorization_code. Ис\
+        пользуйте его для доступа к данным других пользователей при разработке сто\
+        роннего приложения. [Подробнее](/api-catalog/auth/documentation#tag/ApplicationAccess)"
+      flows:
+        authorizationCode:
+          authorizationUrl: https://avito.ru/oauth
+          tokenUrl: https://api.avito.ru/token
+          scopes:
+            autoload:reports: Получение отчетов Автозагрузки
+            items:apply_vas: Применение дополнительных услуг
+            items:info: Получение информации об объявлениях
+            job:cv: Получение информации резюме
+            job:negotiations: Получение информации об откликах на вакансии
+            job:write: Изменение объявлений вертикали Работа
+            messenger:read: Чтение сообщений в мессенджере Авито
+            messenger:write: Модифицирование сообщений в мессенджере Авито
+            short_term_rent:read: Получение информации об объявлениях краткосрочной
+              аренды
+            short_term_rent:write: Изменение объявлений краткосрочной аренды
+            stats:read: Получение статистики объявлений
+            user:read: Получение информации о пользователе
+            user_balance:read: Получение баланса пользователя
+            user_operations:read: Получение истории операций пользователя
+    ClientCredentials:
+      type: oauth2
+      description: "Это API использует OAuth 2 с механизмом client_credentials. Ис\
+        пользуйте его для доступа к возможностям своей личной учетной записи. [Под\
+        робнее](#tag/Access)"
+      flows:
+        clientCredentials:
+          tokenUrl: https://api.avito.ru/token
+          scopes: {}

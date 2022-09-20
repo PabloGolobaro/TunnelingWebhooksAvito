@@ -1,0 +1,8 @@
+/sample.txt
+/*.env
+/*.exe
+/*.yaml
+/*.db
+/test/
+*.md
+

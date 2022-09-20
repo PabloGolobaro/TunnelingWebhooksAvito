@@ -1,0 +1,37 @@
+version: '3.8'
+
+#для подключения к БД в поле HOST .env файла должно быть указано db
+services:
+  app:
+    image: pablogolobar/avitobot:1.0.1
+    container_name: avito_app
+    stop_signal: SIGINT
+    restart: always
+    volumes:
+      - .:.
+    ports:
+      - 8080:8080
+    networks:
+      - main_net
+    depends_on:
+      - ngrok
+
+  ngrok:
+    image: ngrok/ngrok
+    environment:
+      NGROK_AUTHTOKEN: $NGROK_AUTHTOKEN
+    container_name: ngrok
+    command: start --none
+    stop_signal: SIGINT
+    restart: always
+    ports:
+      - 4040:4040
+    env_file:
+      - ".env"
+    networks:
+      - main_net
+
+
+networks:
+  main_net:
+    driver: bridge
