@@ -19,7 +19,7 @@ type webhook struct {
 
 func (w webhook) String() (result string) {
 	for _, message := range w.Messages {
-		result += "Тип сообщения: " + message.Type + "\n" + message.Content.Text + "\n"
+		result += "Сообщение: " + message.Content.Text + "\n"
 	}
 	return
 }

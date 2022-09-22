@@ -2,26 +2,39 @@ version: '3.8'
 
 #для подключения к БД в поле HOST .env файла должно быть указано db
 services:
+  db:
+    image: sameersbn/postgresql:10-2
+    container_name: postgresql_db
+    environment:
+      PG_PASSWORD: $NGROK_AUTHTOKEN
+    restart: always
+    env_file:
+      - ".env"
+    ports:
+      - 5432:5432
+    networks:
+      - main_net
+    volumes:
+      - ./postgres:/var/lib/postgresql
   app:
-    image: pablogolobar/avitobot:1.0.1
+    image: pablogolobar/avitobot:1.0.2
     container_name: avito_app
     stop_signal: SIGINT
     restart: always
-    volumes:
-      - .:.
     ports:
       - 8080:8080
     networks:
       - main_net
     depends_on:
       - ngrok
+      - db
 
   ngrok:
     image: ngrok/ngrok
     environment:
       NGROK_AUTHTOKEN: $NGROK_AUTHTOKEN
     container_name: ngrok
-    command: start --none
+    command: start --none --region eu
     stop_signal: SIGINT
     restart: always
     ports:

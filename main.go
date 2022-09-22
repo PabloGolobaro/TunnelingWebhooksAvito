@@ -19,7 +19,7 @@ import (
 const server_port string = ":8080"
 
 func main() {
-	db_type := flag.String("db", "sqlite", "Type of DB to use.")
+	db_type := flag.String("db", "postgres", "Type of DB to use.")
 	flag.Parse()
 	//Load Configuration
 	err := config.LoadConfig()
