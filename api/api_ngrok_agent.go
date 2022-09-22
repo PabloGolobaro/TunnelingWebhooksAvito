@@ -27,7 +27,7 @@ func (a *NgrokApiService) StartTunnel(ctx context.Context, localVarOptionals *Ng
 	)
 
 	// create path and map variables
-	localVarPath := "http://localhost:4040/api/tunnels"
+	localVarPath := "http://ngrok:4040/api/tunnels"
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}
@@ -109,7 +109,7 @@ func (a *NgrokApiService) StopTunnel(ctx context.Context, tunnelName string) (*h
 	)
 
 	// create path and map variables
-	localVarPath := "http://localhost:4040/api/tunnels/" + tunnelName
+	localVarPath := "http://ngrok:4040/api/tunnels/" + tunnelName
 
 	localVarHeaderParams := make(map[string]string)
 	localVarQueryParams := url.Values{}

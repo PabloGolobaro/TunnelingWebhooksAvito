@@ -26,6 +26,7 @@ func PostWebhook(c *gin.Context) {
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
+
 	fmt.Println(gotWebhook.String())
 	var IDs = make([]int, 0)
 	for _, recepient := range config.Config.Recepient {
@@ -39,6 +40,9 @@ func PostWebhook(c *gin.Context) {
 	var userid int
 	for _, message := range gotWebhook.Messages {
 		userid = message.UserId
+		if message.Type == "system" {
+			return
+		}
 	}
 	user, err := service.Dao.GetByUserId(uint(userid))
 	if err != nil {

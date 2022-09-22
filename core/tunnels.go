@@ -11,7 +11,7 @@ import (
 
 func StartTunel(apiClient *api.APIClient, tunnel_name string) (public string) {
 	requestBody := ngrok.WebhookSubscribeRequestBody{
-		Addr:  "8080",
+		Addr:  "app:8080",
 		Proto: "http",
 		Name:  tunnel_name,
 	}
