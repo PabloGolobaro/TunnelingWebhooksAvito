@@ -1,6 +1,6 @@
 # AvitoMessengeBot
  
- System that accept webhooks from Avito API through ngrok tunnels and sends specific webhook information to recipients via TelegramBot.
+ System that accepts webhooks from Avito API through ngrok tunnels and sends specific webhook information to recipients via TelegramBot.
  - GORM
  - Gin router
  - Telebot for TG_Bot
