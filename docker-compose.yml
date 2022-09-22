@@ -6,7 +6,7 @@ services:
     image: sameersbn/postgresql:10-2
     container_name: postgresql_db
     environment:
-      PG_PASSWORD: $NGROK_AUTHTOKEN
+      PG_PASSWORD: $PG_PASSWORD
     restart: always
     env_file:
       - ".env"
